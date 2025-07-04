@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="text-center">
+    <h2>Welcome to Appointment Booker</h2>
+    <p>Use the navigation bar to book an appointment or view professionals.</p>
+    {% if access_token %}
+        <p class="text-muted">Your access token: {{ access_token }}</p>
+    {% endif %}
+</div>
+{% endblock %}
