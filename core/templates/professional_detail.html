@@ -1,0 +1,123 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="{% static 'style.css' %}" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <div class="container mx-auto p-6">
+        <header class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-lg shadow-lg mb-6">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold">Professional Details: {{ professional.name }}</h1>
+                <div>
+                    <p class="text-white">Current Time (UTC): {{ current_time|date:"d/m/Y, h:i A" }}</p>
+                    <a href="{% url 'admin_dashboard' %}" class="text-white hover:underline">Back to Dashboard</a>
+                    <span class="mx-4">|</span>
+                    <a href="{% url 'logout' %}" class="text-white hover:underline">Logout</a>
+                </div>
+            </div>
+        </header>
+
+        {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                    <div class="bg-{% if message.tags == 'error' %}red{% else %}green{% endif %}-100 border-l-4 border-{% if message.tags == 'error' %}red{% else %}green{% endif %}-500 text-{% if message.tags == 'error' %}red{% else %}green{% endif %}-700 p-4 rounded-lg {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="tabs">
+                <ul class="flex border-b">
+                    <li class="mr-1">
+                        <a class="inline-block py-2 px-4 font-semibold text-blue-600 border-b-2 border-blue-600" href="#personal-info">Professional Info</a>
+                    </li>
+                    <li class="mr-1">
+                        <a class="inline-block py-2 px-4 font-semibold text-gray-600 hover:text-blue-600" href="#appointments">Appointments</a>
+                    </li>
+                </ul>
+                <div class="tab-content mt-4">
+                    <div id="personal-info" class="tab-pane active">
+                        <h2 class="text-xl font-semibold mb-4">Professional Information</h2>
+                        <p><strong>Name:</strong> {{ professional.name }}</p>
+                        <p><strong>Email:</strong> {{ professional.email }}</p>
+                        <p><strong>Phone:</strong> {{ professional.phone|default:"Not provided" }}</p>
+                        <p><strong>Service Type:</strong> {{ professional.profile.service_type }}</p>
+                        <p><strong>Details:</strong> {{ professional.profile.service_details }}</p>
+                        <p><strong>Experience:</strong> {{ professional.profile.experience }} years</p>
+                        {% if professional.profile.website %}
+                            <p><strong>Website:</strong> <a href="{{ professional.profile.website }}" class="text-blue-600 hover:underline" target="_blank">{{ professional.profile.website }}</a></p>
+                        {% endif %}
+                        <p><strong>Approved:</strong> {{ professional.profile.approved|yesno:"Yes,No" }}</p>
+                        <form method="post" class="mt-4 flex space-x-4">
+                            {% csrf_token %}
+                            {% if not professional.profile.approved %}
+                                <button type="submit" name="approve" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg">Approve</button>
+                            {% endif %}
+                            <button type="submit" name="delete" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg">Delete Professional</button>
+                        </form>
+                    </div>
+                    <div id="appointments" class="tab-pane hidden">
+                        <h2 class="text-xl font-semibold mb-4">Appointment Statistics</h2>
+                        <p><strong>Total Appointments:</strong> {{ total_appointments }}</p>
+                        <p><strong>Completed Appointments:</strong> {{ completed_appointments }}</p>
+                        <h3 class="text-lg font-semibold mt-4 mb-2">Pending Appointments</h3>
+                        {% for appointment in pending_appointments %}
+                            <div class="mb-2">
+                                <p><strong>Customer:</strong> {{ appointment.customer.name }}</p>
+                                <p><strong>Date:</strong> {{ appointment.datetime|date:"d/m/Y, h:i A" }}</p>
+                                <p><strong>Details:</strong> {{ appointment.details }}</p>
+                                <p><strong>Remarks:</strong> {{ appointment.remarks|default:"None" }}</p>
+                                <p><strong>Status:</strong> {{ appointment.status|capfirst }}</p>
+                            </div>
+                        {% empty %}
+                            <p class="text-gray-500">No pending appointments.</p>
+                        {% endfor %}
+                        <h3 class="text-lg font-semibold mt-4 mb-2">Upcoming Appointments</h3>
+                        {% for appointment in upcoming_appointments %}
+                            <div class="mb-2">
+                                <p><strong>Customer:</strong> {{ appointment.customer.name }}</p>
+                                <p><strong>Date:</strong> {{ appointment.datetime|date:"d/m/Y, h:i A" }}</p>
+                                <p><strong>Details:</strong> {{ appointment.details }}</p>
+                                <p><strong>Remarks:</strong> {{ appointment.remarks|default:"None" }}</p>
+                                <p><strong>Status:</strong> {{ appointment.status|capfirst }}</p>
+                            </div>
+                        {% empty %}
+                            <p class="text-gray-500">No upcoming appointments.</p>
+                        {% endfor %}
+                        <h3 class="text-lg font-semibold mt-4 mb-2">Past Appointments</h3>
+                        {% for appointment in past_appointments %}
+                            <div class="mb-2">
+                                <p><strong>Customer:</strong> {{ appointment.customer.name }}</p>
+                                <p><strong>Date:</strong> {{ appointment.datetime|date:"d/m/Y, h:i A" }}</p>
+                                <p><strong>Details:</strong> {{ appointment.details }}</p>
+                                <p><strong>Remarks:</strong> {{ appointment.remarks|default:"None" }}</p>
+                                <p><strong>Status:</strong> {{ appointment.status|capfirst }}</p>
+                            </div>
+                        {% empty %}
+                            <p class="text-gray-500">No past appointments.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.querySelectorAll('.tabs a').forEach(tab => {
+            tab.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
+                document.querySelectorAll('.tabs a').forEach(t => t.classList.remove('text-blue-600', 'border-blue-600'));
+                this.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+                document.querySelector(this.getAttribute('href')).classList.remove('hidden');
+            });
+        });
+    </script>
+</body>
+</html>

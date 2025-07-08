@@ -1,0 +1,65 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Appointment</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="{% static 'style.css' %}" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <div class="container mx-auto p-6">
+        <header class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-lg shadow-lg mb-6">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold">Request Appointment with {{ chat_request.customer.name }}</h1>
+                <div>
+                    <p class="text-white">Current Time (UTC): {{ current_time|date:"d/m/Y, h:i A" }}</p>
+                    <a href="{% url 'chat_window' chat_request.id %}" class="text-white hover:underline">Back to Chat</a>
+                    <span class="mx-4">|</span>
+                    <a href="{% url 'logout' %}" class="text-white hover:underline">Logout</a>
+                </div>
+            </div>
+        </header>
+        {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                    <div class="bg-{% if message.tags == 'error' %}red{% else %}green{% endif %}-100 border-l-4 border-{% if message.tags == 'error' %}red{% else %}green{% endif %}-500 text-{% if message.tags == 'error' %}red{% else %}green{% endif %}-700 p-4 rounded-lg {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Appointment Details</h2>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label for="datetime" class="block text-sm font-medium text-gray-700">Date and Time (UTC)</label>
+                    <input type="datetime-local" name="datetime" id="datetime" class="mt-1 p-2 w-full border rounded-lg" min="{{ current_time|date:'Y-m-d\TH:i' }}" step="60" required>
+                </div>
+                <div class="mb-4">
+                    <label for="details" class="block text-sm font-medium text-gray-700">Details</label>
+                    <textarea name="details" id="details" class="mt-1 p-2 w-full border rounded-lg" required></textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="remarks" class="block text-sm font-medium text-gray-700">Remarks</label>
+                    <textarea name="remarks" id="remarks" class="mt-1 p-2 w-full border rounded-lg"></textarea>
+                </div>
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">Send Appointment Request</button>
+            </form>
+        </div>
+    </div>
+    <script>
+        // Ensure the datetime input reflects UTC and prevents past dates
+        document.addEventListener('DOMContentLoaded', function() {
+            const datetimeInput = document.getElementById('datetime');
+            const now = new Date('{{ current_time|date:"c" }}');
+            const minDateTime = new Date(now.getTime() + 60 * 1000); // At least 1 minute in future
+            const isoString = minDateTime.toISOString().slice(0, 16);
+            datetimeInput.min = isoString;
+            datetimeInput.value = isoString; // Set default to current time + 1 minute
+        });
+    </script>
+</body>
+</html>

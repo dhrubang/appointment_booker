@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="{% static 'style.css' %}" rel="stylesheet">
+    <script>
+        function toggleProfessionalFields() {
+            const role = document.getElementById('role').value;
+            const professionalFields = document.getElementById('professional-fields');
+            professionalFields.style.display = role === 'professional' ? 'block' : 'none';
+        }
+        function restrictToNumbers(event) {
+            const input = event.target;
+            input.value = input.value.replace(/[^0-9]/g, '');
+        }
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <div class="container mx-auto p-6">
+        <header class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-lg shadow-lg mb-6">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold">Register</h1>
+                <p class="text-white">Current Time (UTC): {{ current_time|date:"d/m/Y, h:i A" }}</p>
+            </div>
+        </header>
+
+        {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                    <div class="bg-{% if message.tags == 'error' %}red{% else %}green{% endif %}-100 border-l-4 border-{% if message.tags == 'error' %}red{% else %}green{% endif %}-500 text-{% if message.tags == 'error' %}red{% else %}green{% endif %}-700 p-4 rounded-lg {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Create an Account</h2>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label for="email" class="block text-gray-700">Email</label>
+                    <input type="email" name="email" id="email" class="w-full p-2 border rounded-lg" required>
+                </div>
+                <div class="mb-4">
+                    <label for="name" class="block text-gray-700">Name</label>
+                    <input type="text" name="name" id="name" class="w-full p-2 border rounded-lg" required>
+                </div>
+                <div class="mb-4">
+                    <label for="password" class="block text-gray-700">Password</label>
+                    <input type="password" name="password" id="password" class="w-full p-2 border rounded-lg" required>
+                </div>
+                <div class="mb-4">
+                    <label for="role" class="block text-gray-700">Role</label>
+                    <select name="role" id="role" class="w-full p-2 border rounded-lg" onchange="toggleProfessionalFields()" required>
+                        <option value="customer">Customer</option>
+                        <option value="professional">Professional</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="phone" class="block text-gray-700">Phone (Optional)</label>
+                    <input type="text" name="phone" id="phone" class="w-full p-2 border rounded-lg" pattern="[0-9]*" oninput="restrictToNumbers(event)" placeholder="Enter numbers only">
+                </div>
+                <div id="professional-fields" style="display: none;">
+                    <div class="mb-4">
+                        <label for="service_type" class="block text-gray-700">Service Type</label>
+                        <input type="text" name="service_type" id="service_type" class="w-full p-2 border rounded-lg">
+                    </div>
+                    <div class="mb-4">
+                        <label for="service_details" class="block text-gray-700">Service Details</label>
+                        <textarea name="service_details" id="service_details" class="w-full p-2 border rounded-lg"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label for="experience" class="block text-gray-700">Experience (Years)</label>
+                        <input type="number" name="experience" id="experience" class="w-full p-2 border rounded-lg" min="0" step="1" value="0">
+                    </div>
+                    <div class="mb-4">
+                        <label for="website" class="block text-gray-700">Website (Optional)</label>
+                        <input type="url" name="website" id="website" class="w-full p-2 border rounded-lg">
+                    </div>
+                </div>
+                <button type="submit" class="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600">Register</button>
+            </form>
+            <p class="mt-4">Already have an account? <a href="{% url 'login' %}" class="text-blue-500 hover:underline">Login here</a></p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,139 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="{% static 'style.css' %}" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <div class="container mx-auto p-6">
+        <header class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-lg shadow-lg mb-6">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold">Customer Dashboard</h1>
+                <div>
+                    <p class="text-white">Current Time (UTC): {{ current_time|date:"d/m/Y, h:i A" }}</p>
+                    <a href="{% url 'logout' %}" class="text-white hover:underline">Logout</a>
+                </div>
+            </div>
+        </header>
+
+        {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                    <div class="bg-{% if message.tags == 'error' %}red{% else %}green{% endif %}-100 border-l-4 border-{% if message.tags == 'error' %}red{% else %}green{% endif %}-500 text-{% if message.tags == 'error' %}red{% else %}green{% endif %}-700 p-4 rounded-lg {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-xl font-semibold mb-4">Find Professionals</h2>
+            <form method="get" class="mb-4">
+                <input type="text" name="service_query" placeholder="Search by service type" value="{{ request.GET.service_query }}" class="p-2 border rounded-lg w-full sm:w-1/2">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg mt-2 sm:mt-0 sm:ml-2">Search</button>
+            </form>
+            <ul>
+                {% for professional in professionals %}
+                    <li class="mb-2">
+                        <strong>{{ professional.name }}</strong> - {{ professional.profile.service_type }}<br>
+                        {{ professional.profile.service_details }}<br>
+                        Experience: {{ professional.profile.experience }} years<br>
+                        {% if professional.profile.website %}
+                            <a href="{{ professional.profile.website }}" class="text-blue-500 hover:underline">Website</a><br>
+                        {% endif %}
+                        <a href="{% url 'chat_request' professional.id %}" class="text-blue-500 hover:underline">Request Chat</a>
+                    </li>
+                {% empty %}
+                    <li>No professionals found.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-xl font-semibold mb-4">Pending Chat Requests</h2>
+            <ul>
+                {% for chat_request in chat_requests %}
+                    <li class="mb-2">
+                        <strong>Professional:</strong> {{ chat_request.professional.name }}<br>
+                        <strong>Status:</strong> {{ chat_request.status|capfirst }}<br>
+                        <strong>Created:</strong> {{ chat_request.created_at|date:"d/m/Y, h:i A" }}<br>
+                        <a href="{% url 'chat_window' chat_request.id %}" class="text-blue-500 hover:underline">View Chat</a>
+                    </li>
+                {% empty %}
+                    <li>No pending chat requests.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-xl font-semibold mb-4">Ongoing Chats</h2>
+            <ul>
+                {% for chat_request in ongoing_chats %}
+                    <li class="mb-2">
+                        <strong>Professional:</strong> {{ chat_request.professional.name }}<br>
+                        <a href="{% url 'chat_window' chat_request.id %}" class="text-blue-500 hover:underline">Continue Chat</a>
+                    </li>
+                {% empty %}
+                    <li>No ongoing chats.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-xl font-semibold mb-4">Pending Appointments</h2>
+            <ul>
+                {% for appointment in pending_appointments %}
+                    <li class="mb-2">
+                        <strong>Professional:</strong> {{ appointment.professional.name }}<br>
+                        <strong>Date:</strong> {{ appointment.datetime|date:"d/m/Y, h:i A" }}<br>
+                        <strong>Details:</strong> {{ appointment.details }}<br>
+                        <strong>Remarks:</strong> {{ appointment.remarks|default:"None" }}<br>
+                        <strong>Status:</strong> {{ appointment.status|capfirst }}<br>
+                        <a href="{% url 'manage_appointment' appointment.id %}" class="text-blue-500 hover:underline">Manage Appointment</a>
+                    </li>
+                {% empty %}
+                    <li>No pending appointments.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-xl font-semibold mb-4">Upcoming Appointments</h2>
+            <ul>
+                {% for appointment in upcoming_appointments %}
+                    <li class="mb-2">
+                        <strong>Professional:</strong> {{ appointment.professional.name }}<br>
+                        <strong>Date:</strong> {{ appointment.datetime|date:"d/m/Y, h:i A" }}<br>
+                        <strong>Details:</strong> {{ appointment.details }}<br>
+                        <strong>Remarks:</strong> {{ appointment.remarks|default:"None" }}<br>
+                        <strong>Status:</strong> {{ appointment.status|capfirst }}
+                    </li>
+                {% empty %}
+                    <li>No upcoming appointments.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Past Appointments</h2>
+            <ul>
+                {% for appointment in past_appointments %}
+                    <li class="mb-2">
+                        <strong>Professional:</strong> {{ appointment.professional.name }}<br>
+                        <strong>Date:</strong> {{ appointment.datetime|date:"d/m/Y, h:i A" }}<br>
+                        <strong>Details:</strong> {{ appointment.details }}<br>
+                        <strong>Remarks:</strong> {{ appointment.remarks|default:"None" }}<br>
+                        <strong>Status:</strong> {{ appointment.status|capfirst }}
+                    </li>
+                {% empty %}
+                    <li>No past appointments.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Book Appointment with {{ professional.name }}</h2>
+<form method="post">
+    {% csrf_token %}
+    <p>Date and Time: <input type="datetime-local" name="datetime" required></p>
+    <p>Message: <textarea name="message"></textarea></p>
+    <button type="submit">Book</button>
+</form>
+<a href="{% url 'customer_dashboard' %}">Back</a>
+{% endblock %}

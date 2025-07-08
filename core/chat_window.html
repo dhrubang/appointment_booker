@@ -1,0 +1,118 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="{% static 'style.css' %}" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <div class="container mx-auto p-6">
+        <header class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-lg shadow-lg mb-6">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold">Chat with {{ chat_request.professional.name }}</h1>
+                <div>
+                    <p class="text-white">Current Time (UTC): {{ current_time|date:"d/m/Y, h:i A" }}</p>
+                    <a href="{% if request.user.role == 'customer' %}{% url 'customer_dashboard' %}{% else %}{% url 'professional_dashboard' %}{% endif %}" class="text-white hover:underline">Back to Dashboard</a>
+                    <span class="mx-4">|</span>
+                    <a href="{% url 'logout' %}" class="text-white hover:underline">Logout</a>
+                </div>
+            </div>
+        </header>
+        {% if chat_request.status != 'approved' and request.user == chat_request.customer %}
+            <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-lg mb-6">
+                This chat request is {{ chat_request.status }}.
+            </div>
+        {% endif %}
+        {% if chat_request.status == 'pending' and request.user == chat_request.professional %}
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <h2 class="text-xl font-semibold mb-4">Chat Request</h2>
+                <p><strong>Customer:</strong> {{ chat_request.customer.name }}</p>
+                <p><strong>Status:</strong> {{ chat_request.status|capfirst }}</p>
+                <h3 class="text-lg font-semibold mt-4 mb-2">Messages</h3>
+                <ul>
+                    {% for message in messages %}
+                        <li class="mb-2">{{ message.sender.name }} ({{ message.timestamp|date:"d/m/Y, h:i A" }}): {{ message.content }}</li>
+                    {% empty %}
+                        <li>No messages yet.</li>
+                    {% endfor %}
+                </ul>
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="approved" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg">Approve</button>
+                    <button type="submit" name="action" value="rejected" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg">Reject</button>
+                </form>
+            </div>
+        {% endif %}
+        {% if chat_request.status == 'approved' %}
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <h2 class="text-xl font-semibold mb-4">Messages</h2>
+                <ul>
+                    {% for message in messages %}
+                        <li class="mb-2">{{ message.sender.name }} ({{ message.timestamp|date:"d/m/Y, h:i A" }}): {{ message.content }}</li>
+                    {% empty %}
+                        <li>No messages yet.</li>
+                    {% endfor %}
+                </ul>
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label for="message" class="block text-sm font-medium text-gray-700">New Message</label>
+                        <textarea name="message" id="message" class="mt-1 p-2 w-full border rounded-lg" required></textarea>
+                    </div>
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">Send</button>
+                </form>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <h2 class="text-xl font-semibold mb-4">Pending Appointments</h2>
+                <ul>
+                    {% for appointment in pending_appointments %}
+                        <li class="mb-2">
+                            <strong>Date:</strong> {{ appointment.datetime|date:"d/m/Y, h:i A" }}<br>
+                            <strong>Details:</strong> {{ appointment.details }}<br>
+                            <strong>Remarks:</strong> {{ appointment.remarks|default:"None" }}<br>
+                            <strong>Status:</strong> {{ appointment.status|capfirst }}
+                            {% if request.user == appointment.customer %}
+                                <br><a href="{% url 'manage_appointment' appointment.id %}" class="text-blue-500 hover:underline">Manage Appointment</a>
+                            {% endif %}
+                        </li>
+                    {% empty %}
+                        <li>No pending appointments.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <h2 class="text-xl font-semibold mb-4">Approved Appointments</h2>
+                <ul>
+                    {% for appointment in appointments %}
+                        <li class="mb-2">
+                            <strong>Date:</strong> {{ appointment.datetime|date:"d/m/Y, h:i A" }}<br>
+                            <strong>Details:</strong> {{ appointment.details }}<br>
+                            <strong>Remarks:</strong> {{ appointment.remarks|default:"None" }}<br>
+                            <strong>Status:</strong> {{ appointment.status|capfirst }}
+                            {% if request.user == appointment.professional %}
+                                <form method="post" class="mt-2">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+                                    <div class="mb-2">
+                                        <label for="remarks_{{ appointment.id }}" class="block text-sm font-medium text-gray-700">Update Remarks</label>
+                                        <textarea name="remarks" id="remarks_{{ appointment.id }}" class="mt-1 p-2 w-full border rounded-lg">{{ appointment.remarks }}</textarea>
+                                    </div>
+                                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">Update Remarks</button>
+                                </form>
+                            {% endif %}
+                        </li>
+                    {% empty %}
+                        <li>No approved appointments.</li>
+                    {% endfor %}
+                </ul>
+                {% if request.user == chat_request.professional %}
+                    <a href="{% url 'appointment_request' chat_request.id %}" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg mt-4 inline-block">Request Appointment</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
