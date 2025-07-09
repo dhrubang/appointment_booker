@@ -1,0 +1,32 @@
+# Python and Django-specific
+*.pyc
+__pycache__/
+core/tests.py
+core/admin.py
+static/style.css
+
+# Environment-related
+env/
+venv/
+.env
+.venv
+ENV/
+VENV/
+.env.*
+
+# macOS-specific
+.DS_Store
+.AppleDouble
+.LSOverride
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
